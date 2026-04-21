@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  /* SpendIngket Brand Tokens */
+  --brand-primary: #3B76F6;      /* Trust Blue */
+  --brand-success: #66BB6A;      /* Growth Green */
+  --brand-accent: #F06292;       /* Soft Heart Pink */
+  --brand-highlight: #FFD54F;    /* Golden Value */
+  --brand-slate: #455A64;        /* Neutral Slate */
+
+  --background: #F8F9FA;         /* Cloud White */
+  --foreground: #455A64;         /* Neutral Slate */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--brand-primary);
+  --color-success: var(--brand-success);
+  --color-accent: var(--brand-accent);
+  --color-highlight: var(--brand-highlight);
+  --color-slate: var(--brand-slate);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
