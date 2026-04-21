@@ -87,3 +87,15 @@ Just as a first-aid kit is not intimidating but always useful, SpendIngket is de
 - **Forgiving** — does not punish overspending; instead, it helps you understand it
 
 The "kit" metaphor matters. A kit is not a constraint — it is a resource. SpendIngket does not tell users what to do with their money. It gives them what they need to make better decisions themselves.
+
+| Color Name          | Hex Code  | Role                | Meaning                                                                                                            |
+| ------------------- | --------- | ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Trust Blue**      | `#3B76F6` | Primary Brand Color | Represents reliability and clarity. It anchors the experience and makes users feel secure managing their finances. |
+| **Growth Green**    | `#66BB6A` | Success / Action    | Symbolizes progress, savings, and financial growth — every small win matters.                                      |
+| **Soft Heart Pink** | `#F06292` | Emotional Accent    | A tribute to *Ingket*. Adds warmth, humanity, and personal connection to the interface.                            |
+| **Golden Value**    | `#FFD54F` | Highlights          | Represents money, rewards, and achievement — used to celebrate milestones and insights.                            |
+| **Neutral Slate**   | `#455A64` | Typography          | Grounded and readable. Keeps the interface calm and easy on the eyes.                                              |
+| **Cloud White**     | `#F8F9FA` | Background          | A clean, minimal canvas that allows content and insights to stand out.                                             |
+
+<img width="1254" height="1254" alt="Branding" src="https://github.com/user-attachments/assets/15fba934-702f-4f88-aa82-44dc14f952e6" />
+
