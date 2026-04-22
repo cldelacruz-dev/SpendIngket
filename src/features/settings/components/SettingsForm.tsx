@@ -2,9 +2,7 @@
 
 import { useSettingsForm } from "@/features/settings/hooks/useSettingsForm";
 import type { UserProfile } from "@/types";
-import { Sun, Moon, Monitor } from "lucide-react";
-import { useUIStore, type Theme } from "@/stores/useUIStore";
-import { cn } from "@/lib/utils";
+import { Sun } from "lucide-react";
 
 interface SettingsFormProps {
   profile: UserProfile | null;
@@ -13,7 +11,6 @@ interface SettingsFormProps {
 }
 
 export default function SettingsForm({ profile, userId, email }: SettingsFormProps) {
-  const { theme, setTheme } = useUIStore();
   const {
     displayName, setDisplayName,
     timezone, setTimezone,
@@ -99,26 +96,10 @@ export default function SettingsForm({ profile, userId, email }: SettingsFormPro
         <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-zinc-50">Appearance</h2>
         <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">Choose how SpendIngket looks for you.</p>
         <div className="flex gap-3">
-          {([
-            { value: "light", label: "Light", icon: Sun },
-            { value: "dark",  label: "Dark",  icon: Moon },
-            { value: "system", label: "System", icon: Monitor },
-          ] as { value: Theme; label: string; icon: React.ElementType }[]).map(({ value, label, icon: Icon }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setTheme(value)}
-              className={cn(
-                "flex flex-1 flex-col items-center gap-2 rounded-xl border-2 py-4 text-sm font-medium transition-colors",
-                theme === value
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
-                  : "border-zinc-200 text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600"
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </button>
-          ))}
+          <div className="flex flex-1 flex-col items-center gap-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 py-4 text-sm font-medium text-emerald-700">
+            <Sun className="h-5 w-5" />
+            Light
+          </div>
         </div>
       </div>
     </div>

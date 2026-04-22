@@ -62,7 +62,7 @@ export default function TransactionList({
                   id: t.id,
                   description: t.description,
                   amount: Number(t.amount),
-                  type: t.type,
+                  type: t.type as "expense" | "income",
                   category_id: t.category_id,
                   transaction_date: t.transaction_date,
                   notes: t.notes,
@@ -74,15 +74,19 @@ export default function TransactionList({
 
         return (
           <div key={t.id} className="group relative">
-            <TransactionCard transaction={t} />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
-              <button
-                onClick={() => setEditingId(t.id)}
-                className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800"
-                aria-label="Edit"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
+            <div className="pr-20">
+              <TransactionCard transaction={t} />
+            </div>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {(t.type === "income" || t.type === "expense") && (
+                <button
+                  onClick={() => setEditingId(t.id)}
+                  className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800"
+                  aria-label="Edit"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              )}
               <button
                 onClick={() => handleDelete(t.id)}
                 className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
@@ -92,6 +96,7 @@ export default function TransactionList({
               </button>
             </div>
           </div>
+
         );
       })}
     </div>

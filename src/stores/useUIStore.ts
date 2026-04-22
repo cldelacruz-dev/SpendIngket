@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type Theme = "system" | "light" | "dark";
+export type Theme = "light";
 
 interface UIState {
   sidebarOpen: boolean;
@@ -19,7 +19,7 @@ export const useUIStore = create<UIState>()(
     (set) => ({
       sidebarOpen: true,
       activeModal: null,
-      theme: "system",
+      theme: "light",
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       openModal: (id) => set({ activeModal: id }),

@@ -17,7 +17,7 @@ export default function WalletCard({ wallet, currencySymbol = "₱" }: WalletCar
   return (
     <Link
       href={`/wallets/${wallet.id}`}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 dark:border-zinc-800 dark:bg-zinc-900"
+      className="group relative flex h-[140px] flex-col justify-between overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 dark:border-zinc-800 dark:bg-zinc-900"
     >
       {/* Color bar */}
       <div
