@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import TransactionForm from "./TransactionForm";
-import type { Category } from "@/types";
+import type { Category, Wallet } from "@/types";
 
 interface AddTransactionButtonProps {
   categories: Category[];
   userId: string;
+  wallets?: Wallet[];
 }
 
-export default function AddTransactionButton({ categories, userId }: AddTransactionButtonProps) {
+export default function AddTransactionButton({ categories, userId, wallets }: AddTransactionButtonProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -32,6 +33,7 @@ export default function AddTransactionButton({ categories, userId }: AddTransact
             <TransactionForm
               userId={userId}
               categories={categories}
+              wallets={wallets}
               onClose={() => setOpen(false)}
             />
           </div>

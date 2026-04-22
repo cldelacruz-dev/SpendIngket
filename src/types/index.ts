@@ -10,6 +10,8 @@ export type BudgetAllocation = Database["public"]["Tables"]["budget_allocations"
 export type SavingsGoal = Database["public"]["Tables"]["savings_goals"]["Row"];
 export type GoalContribution = Database["public"]["Tables"]["goal_contributions"]["Row"];
 export type RecurringTransaction = Database["public"]["Tables"]["recurring_transactions"]["Row"];
+export type Wallet = Database["public"]["Tables"]["wallets"]["Row"];
+export type Loan = Database["public"]["Tables"]["loans"]["Row"];
 
 // Insert types
 export type TransactionInsert = Database["public"]["Tables"]["transactions"]["Insert"];
@@ -18,6 +20,10 @@ export type BudgetAllocationInsert = Database["public"]["Tables"]["budget_alloca
 export type SavingsGoalInsert = Database["public"]["Tables"]["savings_goals"]["Insert"];
 export type GoalContributionInsert = Database["public"]["Tables"]["goal_contributions"]["Insert"];
 export type CategoryInsert = Database["public"]["Tables"]["categories"]["Insert"];
+export type WalletInsert = Database["public"]["Tables"]["wallets"]["Insert"];
+export type WalletUpdate = Database["public"]["Tables"]["wallets"]["Update"];
+export type LoanInsert = Database["public"]["Tables"]["loans"]["Insert"];
+export type LoanUpdate = Database["public"]["Tables"]["loans"]["Update"];
 
 // Update types
 export type TransactionUpdate = Database["public"]["Tables"]["transactions"]["Update"];
@@ -26,15 +32,22 @@ export type SavingsGoalUpdate = Database["public"]["Tables"]["savings_goals"]["U
 export type UserProfileUpdate = Database["public"]["Tables"]["users"]["Update"];
 
 // Enum types
-export type TransactionType = "expense" | "income";
+export type TransactionType = "expense" | "income" | "transfer" | "loan_received" | "loan_payment";
 export type BudgetPeriodType = "weekly" | "monthly" | "yearly";
 export type GoalStatus = "active" | "completed" | "paused" | "cancelled";
 export type RecurringFrequency = "daily" | "weekly" | "biweekly" | "monthly" | "yearly";
 export type CategoryType = "expense" | "income" | "both";
+export type WalletType = "debit" | "credit" | "bank" | "cash" | "ewallet";
+export type LoanStatus = "active" | "paid" | "overdue";
 
 // Composite/enriched types
 export type TransactionWithCategory = Transaction & {
   categories: Pick<Category, "id" | "name" | "icon" | "color">;
+};
+
+export type TransactionWithWalletAndCategory = Transaction & {
+  categories: Pick<Category, "id" | "name" | "icon" | "color">;
+  wallets: Pick<Wallet, "id" | "name" | "color" | "icon"> | null;
 };
 
 export type BudgetWithAllocations = Budget & {
@@ -73,4 +86,12 @@ export type MonthlySummary = {
   net: number;
   saving_rate: number;
   top_category: SpendingByCategory | null;
+};
+
+export type WalletWithBalance = Wallet & {
+  // balance is stored directly on the wallet row
+};
+
+export type LoanWithProgress = Loan & {
+  repayment_pct: number; // (principal - remaining) / principal * 100
 };

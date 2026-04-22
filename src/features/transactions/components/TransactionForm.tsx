@@ -2,11 +2,14 @@
 
 import { useTransactionForm } from "@/features/transactions/hooks/useTransactionForm";
 import { daySuffix, CUTOFF_DAY_OPTIONS } from "@/features/transactions/services/transactionService";
-import type { Category } from "@/types";
+import type { Category, Wallet } from "@/types";
 
 interface TransactionFormProps {
   userId: string;
   categories: Category[];
+  wallets?: Wallet[];
+  defaultWalletId?: string;
+  defaultType?: "expense" | "income";
   onClose?: () => void;
   initialData?: {
     id: string;
@@ -15,6 +18,7 @@ interface TransactionFormProps {
     type: "expense" | "income";
     category_id: string;
     transaction_date: string;
+    wallet_id?: string | null;
     notes?: string | null;
   };
 }
@@ -22,6 +26,9 @@ interface TransactionFormProps {
 export default function TransactionForm({
   userId,
   categories,
+  wallets,
+  defaultWalletId,
+  defaultType,
   onClose,
   initialData,
 }: TransactionFormProps) {
@@ -32,6 +39,7 @@ export default function TransactionForm({
     date, setDate,
     notes, setNotes,
     categoryId, setCategoryId,
+    walletId, setWalletId,
     isRecurring, setIsRecurring,
     cutoffDay, setCutoffDay,
     filteredCategories,
@@ -40,7 +48,7 @@ export default function TransactionForm({
     loading,
     handleTypeChange,
     handleSubmit,
-  } = useTransactionForm({ userId, categories, onClose, initialData });
+  } = useTransactionForm({ userId, categories, wallets, defaultWalletId, defaultType, onClose, initialData });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -107,6 +115,33 @@ export default function TransactionForm({
           />
         </div>
       </div>
+
+      {/* Wallet selector */}
+      {wallets !== undefined && (
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            Wallet
+          </label>
+          {wallets.length === 0 ? (
+            <p className="mt-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-400">
+              Create a wallet first to track your balance.
+            </p>
+          ) : (
+            <select
+              value={walletId}
+              onChange={(e) => setWalletId(e.target.value)}
+              className="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50"
+            >
+              <option value="">No wallet (skip balance tracking)</option>
+              {wallets.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.icon} {w.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">

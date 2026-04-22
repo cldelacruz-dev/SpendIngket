@@ -6,6 +6,10 @@ import DashboardStats from "@/features/analytics/components/DashboardStats";
 import RecentTransactions from "@/features/transactions/components/RecentTransactions";
 import BudgetOverview from "@/features/budgets/components/BudgetOverview";
 import GoalsSummary from "@/features/goals/components/GoalsSummary";
+import DashboardGreeting from "@/features/dashboard/components/DashboardGreeting";
+import { buildDrYoshiMessage } from "@/features/dashboard/services/dashboardService";
+import WalletOverview from "@/features/wallets/components/WalletOverview";
+import LoansSummary from "@/features/loans/components/LoansSummary";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -25,6 +29,9 @@ export default async function DashboardPage() {
     { data: transactions },
     { data: budgets },
     { data: goals },
+    { data: profile },
+    { data: wallets },
+    { data: activeLoans },
   ] = await Promise.all([
     supabase
       .from("transactions")
@@ -46,6 +53,22 @@ export default async function DashboardPage() {
       .eq("user_id", user.id)
       .eq("status", "active")
       .limit(3),
+    supabase
+      .from("users")
+      .select("display_name")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("wallets")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at"),
+    supabase
+      .from("loans")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .limit(3),
   ]);
 
   const allTransactions = transactions ?? [];
@@ -56,16 +79,14 @@ export default async function DashboardPage() {
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
+  const displayName = profile?.display_name ?? "there";
+  const message = buildDrYoshiMessage(displayName, totalIncome, totalExpense);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Dashboard
-        </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          {format(now, "MMMM yyyy")} overview
-        </p>
-      </div>
+      <DashboardGreeting displayName={displayName} message={message} />
+
+      <WalletOverview wallets={wallets ?? []} />
 
       <DashboardStats
         totalIncome={totalIncome}
@@ -77,6 +98,8 @@ export default async function DashboardPage() {
         <RecentTransactions transactions={allTransactions} />
         <BudgetOverview budgets={budgets ?? []} />
       </div>
+
+      <LoansSummary loans={activeLoans ?? []} />
 
       <GoalsSummary goals={goals ?? []} />
     </div>

@@ -13,7 +13,7 @@ export default async function TransactionsPage() {
 
   if (!user) return null;
 
-  const [{ data: transactions }, { data: categories }] = await Promise.all([
+  const [{ data: transactions }, { data: categories }, { data: wallets }] = await Promise.all([
     supabase
       .from("transactions")
       .select("*, categories(id, name, icon, color)")
@@ -25,6 +25,11 @@ export default async function TransactionsPage() {
       .select("*")
       .or(`user_id.eq.${user.id},is_system.eq.true`)
       .order("name"),
+    supabase
+      .from("wallets")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at"),
   ]);
 
   return (
@@ -38,7 +43,7 @@ export default async function TransactionsPage() {
             Track your income and expenses
           </p>
         </div>
-        <AddTransactionButton categories={categories ?? []} userId={user.id} />
+        <AddTransactionButton categories={categories ?? []} userId={user.id} wallets={wallets ?? []} />
       </div>
       <TransactionList transactions={transactions ?? []} categories={categories ?? []} userId={user.id} />
     </div>

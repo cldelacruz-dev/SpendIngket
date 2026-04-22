@@ -13,11 +13,14 @@ import {
   computeRecurringStartDate,
   type CutoffDay,
 } from "@/features/transactions/services/transactionService";
-import type { Category } from "@/types";
+import type { Category, Wallet } from "@/types";
 
 interface UseTransactionFormOptions {
   userId: string;
   categories: Category[];
+  wallets?: Wallet[];
+  defaultWalletId?: string;
+  defaultType?: "expense" | "income";
   onClose?: () => void;
   initialData?: {
     id: string;
@@ -26,6 +29,7 @@ interface UseTransactionFormOptions {
     type: "expense" | "income";
     category_id: string;
     transaction_date: string;
+    wallet_id?: string | null;
     notes?: string | null;
   };
 }
@@ -33,6 +37,9 @@ interface UseTransactionFormOptions {
 export function useTransactionForm({
   userId,
   categories,
+  wallets,
+  defaultWalletId,
+  defaultType,
   onClose,
   initialData,
 }: UseTransactionFormOptions) {
@@ -45,7 +52,8 @@ export function useTransactionForm({
 
   const [description, setDescription] = useState(initialData?.description ?? "");
   const [amount, setAmount] = useState(initialData?.amount?.toString() ?? "");
-  const [type, setType] = useState<"expense" | "income">(initialData?.type ?? "expense");
+  const [type, setType] = useState<"expense" | "income">(initialData?.type ?? defaultType ?? "expense");
+  const [walletId, setWalletId] = useState<string>(initialData?.wallet_id ?? defaultWalletId ?? "");
   const [categoryId, setCategoryId] = useState(initialData?.category_id ?? "");
   const [date, setDate] = useState(
     initialData?.transaction_date ?? format(new Date(), "yyyy-MM-dd")
@@ -75,6 +83,7 @@ export function useTransactionForm({
       type,
       category_id: categoryId,
       transaction_date: date,
+      wallet_id: walletId || undefined,
       notes,
     });
 
@@ -86,7 +95,17 @@ export function useTransactionForm({
     setLoading(true);
     try {
       if (isEdit && initialData) {
-        await updateTransaction({ id: initialData.id, ...validation.data }).unwrap();
+        await updateTransaction({
+          id: initialData.id,
+          user_id: userId,
+          wallet_id: validation.data.wallet_id ?? null,
+          category_id: validation.data.category_id,
+          amount: validation.data.amount,
+          type: validation.data.type,
+          description: validation.data.description,
+          transaction_date: validation.data.transaction_date,
+          notes: validation.data.notes ?? null,
+        }).unwrap();
       } else {
         let recurringTransactionId: string | undefined;
         if (type === "income" && isRecurring) {
@@ -104,8 +123,14 @@ export function useTransactionForm({
           recurringTransactionId = recurringRow.id;
         }
         await addTransaction({
-          ...validation.data,
           user_id: userId,
+          wallet_id: validation.data.wallet_id ?? null,
+          category_id: validation.data.category_id,
+          amount: validation.data.amount,
+          type: validation.data.type,
+          description: validation.data.description,
+          transaction_date: validation.data.transaction_date,
+          notes: validation.data.notes ?? null,
           ...(recurringTransactionId
             ? { recurring_transaction_id: recurringTransactionId }
             : {}),
@@ -133,6 +158,8 @@ export function useTransactionForm({
     setNotes,
     categoryId,
     setCategoryId,
+    walletId,
+    setWalletId,
     isRecurring,
     setIsRecurring,
     cutoffDay,

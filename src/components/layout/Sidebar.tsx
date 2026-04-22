@@ -9,6 +9,8 @@ import {
   Target,
   BarChart3,
   Settings,
+  CreditCard,
+  Landmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/useUIStore";
@@ -19,6 +21,8 @@ const NAV_ITEMS = [
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/budgets", label: "Budgets", icon: Wallet },
   { href: "/goals", label: "Goals", icon: Target },
+  { href: "/wallets", label: "Wallets", icon: CreditCard },
+  { href: "/loans", label: "Loans", icon: Landmark },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
 ];
 

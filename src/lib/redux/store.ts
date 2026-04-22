@@ -3,6 +3,8 @@ import { transactionsApi } from "@/features/transactions/api/transactionsApi";
 import { budgetsApi } from "@/features/budgets/api/budgetsApi";
 import { goalsApi } from "@/features/goals/api/goalsApi";
 import { settingsApi } from "@/features/settings/api/settingsApi";
+import { walletsApi } from "@/features/wallets/api/walletsApi";
+import { loansApi } from "@/features/loans/api/loansApi";
 
 export const store = configureStore({
   reducer: {
@@ -10,13 +12,17 @@ export const store = configureStore({
     [budgetsApi.reducerPath]: budgetsApi.reducer,
     [goalsApi.reducerPath]: goalsApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
+    [walletsApi.reducerPath]: walletsApi.reducer,
+    [loansApi.reducerPath]: loansApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       transactionsApi.middleware,
       budgetsApi.middleware,
       goalsApi.middleware,
-      settingsApi.middleware
+      settingsApi.middleware,
+      walletsApi.middleware,
+      loansApi.middleware
     ),
 });
 

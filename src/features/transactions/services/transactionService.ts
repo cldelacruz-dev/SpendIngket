@@ -8,6 +8,7 @@ export const transactionSchema = z.object({
   type: z.enum(["expense", "income"]),
   category_id: z.string().uuid("Select a category"),
   transaction_date: z.string(),
+  wallet_id: z.string().uuid().optional(),
   notes: z.string().max(1000).optional(),
 });
 
@@ -52,11 +53,13 @@ export function validateTransactionForm(raw: {
   type: "expense" | "income";
   category_id: string;
   transaction_date: string;
+  wallet_id?: string;
   notes: string;
 }): { success: true; data: TransactionFormData } | { success: false; error: string } {
   const result = transactionSchema.safeParse({
     ...raw,
     amount: parseFloat(raw.amount),
+    wallet_id: raw.wallet_id || undefined,
     notes: raw.notes || undefined,
   });
   if (!result.success) {
