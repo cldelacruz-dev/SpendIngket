@@ -1,4 +1,5 @@
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
+import { unstable_cache } from "next/cache";
 import { buildDrYoshiMessage } from "./dashboardService";
 
 export interface DrYoshiContext {
@@ -46,11 +47,8 @@ function buildUserMessage(ctx: DrYoshiContext): string {
   return lines.join("\n");
 }
 
-export async function buildDrYoshiAIMessage(
-  ctx: DrYoshiContext
-): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
-
+async function callGemini(ctx: DrYoshiContext): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return buildDrYoshiMessage(
       ctx.displayName,
@@ -60,19 +58,19 @@ export async function buildDrYoshiAIMessage(
   }
 
   try {
-    const client = new OpenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: buildUserMessage(ctx) },
-      ],
-      max_tokens: 120,
-      temperature: 0.75,
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-lite",
+      contents: buildUserMessage(ctx),
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        maxOutputTokens: 120,
+        temperature: 0.75,
+      },
     });
 
-    const message = response.choices[0]?.message?.content?.trim();
+    const message = response.text?.trim();
     if (!message) {
       return buildDrYoshiMessage(
         ctx.displayName,
@@ -80,13 +78,41 @@ export async function buildDrYoshiAIMessage(
         ctx.totalExpense
       );
     }
-
     return message;
-  } catch {
+  } catch (err) {
+    console.error("Error calling Gemini API:", err);
     return buildDrYoshiMessage(
       ctx.displayName,
       ctx.totalIncome,
       ctx.totalExpense
     );
   }
+}
+
+// Module-level cache — survives hot reloads in dev, cleared only on full server restart.
+// Acts as a first guard before unstable_cache (filesystem) to avoid burning API quota.
+const _memCache = new Map<string, { value: string; expiresAt: number }>();
+
+export async function buildDrYoshiAIMessage(
+  ctx: DrYoshiContext
+): Promise<string> {
+  const cacheKey = `dr-yoshi-${ctx.displayName}-${ctx.month}-${Math.round(ctx.totalIncome)}-${Math.round(ctx.totalExpense)}`;
+
+  // 1. Check in-memory cache (1 hour TTL)
+  const hit = _memCache.get(cacheKey);
+  if (hit && hit.expiresAt > Date.now()) {
+    return hit.value;
+  }
+
+  // 2. Next.js filesystem cache (24 hour TTL — persists across restarts in prod)
+  const cached = unstable_cache(
+    () => callGemini(ctx),
+    [cacheKey],
+    { revalidate: 86400 }
+  );
+  const value = await cached();
+
+  // 3. Store in memory cache
+  _memCache.set(cacheKey, { value, expiresAt: Date.now() + 3_600_000 });
+  return value;
 }

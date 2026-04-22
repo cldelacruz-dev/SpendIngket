@@ -53,7 +53,7 @@ export default function TransactionDetail({
               id: transaction.id,
               description: transaction.description,
               amount: Number(transaction.amount),
-              type: transaction.type,
+              type: transaction.type as "expense" | "income",
               category_id: transaction.category_id,
               transaction_date: transaction.transaction_date,
               notes: transaction.notes,

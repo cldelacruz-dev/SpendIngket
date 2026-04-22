@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { startOfMonth, endOfMonth, format } from "date-fns";
@@ -8,8 +7,7 @@ import RecentTransactions from "@/features/transactions/components/RecentTransac
 import BudgetOverview from "@/features/budgets/components/BudgetOverview";
 import GoalsSummary from "@/features/goals/components/GoalsSummary";
 import DashboardGreeting from "@/features/dashboard/components/DashboardGreeting";
-import DrYoshiGreeting from "@/features/dashboard/components/DrYoshiGreeting";
-import { buildDrYoshiMessage } from "@/features/dashboard/services/dashboardService";
+import { buildDrYoshiAIMessage } from "@/features/dashboard/services/aiDashboardService";
 import WalletOverview from "@/features/wallets/components/WalletOverview";
 import LoansSummary from "@/features/loans/components/LoansSummary";
 
@@ -41,8 +39,7 @@ export default async function DashboardPage() {
       .eq("user_id", user.id)
       .gte("transaction_date", periodStart)
       .lte("transaction_date", periodEnd)
-      .order("transaction_date", { ascending: false })
-      .limit(5),
+      .order("transaction_date", { ascending: false }),
     supabase
       .from("budgets")
       .select("*, budget_allocations(*, categories(id, name, icon, color))")
@@ -82,7 +79,6 @@ export default async function DashboardPage() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const displayName = profile?.display_name ?? "there";
-  const staticMessage = buildDrYoshiMessage(displayName, totalIncome, totalExpense);
 
   const savingRate =
     totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
@@ -102,7 +98,7 @@ export default async function DashboardPage() {
     Object.values(categoryTotals).sort((a, b) => b.total - a.total)[0]?.name ??
     null;
 
-  const drYoshiCtx = {
+  const message = await buildDrYoshiAIMessage({
     displayName,
     totalIncome,
     totalExpense,
@@ -111,17 +107,11 @@ export default async function DashboardPage() {
     activeLoansCount: activeLoans?.length ?? 0,
     activeGoalsCount: goals?.length ?? 0,
     month: format(now, "MMMM"),
-  };
+  });
 
   return (
     <div className="space-y-6">
-      <Suspense
-        fallback={
-          <DashboardGreeting displayName={displayName} message={staticMessage} />
-        }
-      >
-        <DrYoshiGreeting {...drYoshiCtx} />
-      </Suspense>
+      <DashboardGreeting displayName={displayName} message={message} />
 
       <WalletOverview wallets={wallets ?? []} />
 
@@ -132,7 +122,7 @@ export default async function DashboardPage() {
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <RecentTransactions transactions={allTransactions} />
+        <RecentTransactions transactions={allTransactions.slice(0, 5)} />
         <BudgetOverview budgets={budgets ?? []} />
       </div>
 
