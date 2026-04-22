@@ -1,5 +1,6 @@
 import type { BudgetWithAllocations, BudgetUtilization } from "@/types";
 import { formatCurrency, formatPercent, formatDate, getProgressBarColor, cn } from "@/lib/utils";
+import { computeBudgetSummary } from "@/features/budgets/services/budgetService";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -9,12 +10,7 @@ interface BudgetDetailProps {
 }
 
 export default function BudgetDetail({ budget, utilization }: BudgetDetailProps) {
-  const totalLimit = budget.budget_allocations.reduce(
-    (s, a) => s + Number(a.amount_limit),
-    0
-  );
-  const totalSpent = utilization.reduce((s, u) => s + Number(u.amount_spent), 0);
-  const overallPct = totalLimit > 0 ? (totalSpent / totalLimit) * 100 : 0;
+  const { totalLimit, totalSpent, overallPct } = computeBudgetSummary(budget, utilization);
 
   return (
     <div className="space-y-6 max-w-2xl">

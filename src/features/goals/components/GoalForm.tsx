@@ -1,68 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { useAddGoalMutation } from "@/features/goals/api/goalsApi";
-
-const goalSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  target_amount: z.number().positive("Target must be positive"),
-  target_date: z.string().optional(),
-  icon: z.string().default("🎯"),
-  color: z.string().default("#10b981"),
-});
+import { useGoalForm } from "@/features/goals/hooks/useGoalForm";
+import { GOAL_ICONS, GOAL_COLORS } from "@/features/goals/services/goalService";
 
 interface GoalFormProps {
   userId: string;
   onClose?: () => void;
 }
 
-const GOAL_ICONS = ["🎯", "🏠", "✈️", "💻", "🚗", "📚", "💍", "🏋️", "🎓", "🌴", "💰", "🎉"];
-const GOAL_COLORS = [
-  "#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6",
-  "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#6366f1",
-];
-
 export default function GoalForm({ userId, onClose }: GoalFormProps) {
-  const router = useRouter();
-  const [addGoal] = useAddGoalMutation();
-  const [name, setName] = useState("");
-  const [targetAmount, setTargetAmount] = useState("");
-  const [targetDate, setTargetDate] = useState("");
-  const [icon, setIcon] = useState("🎯");
-  const [color, setColor] = useState("#10b981");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    const result = goalSchema.safeParse({
-      name,
-      target_amount: parseFloat(targetAmount),
-      target_date: targetDate || undefined,
-      icon,
-      color,
-    });
-
-    if (!result.success) {
-      setError(result.error.issues[0].message);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await addGoal({ ...result.data, user_id: userId }).unwrap();
-      router.refresh();
-      onClose?.();
-    } catch (err) {
-      setError((err as { error: string }).error ?? "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    name, setName,
+    targetAmount, setTargetAmount,
+    targetDate, setTargetDate,
+    icon, setIcon,
+    color, setColor,
+    error,
+    loading,
+    handleSubmit,
+  } = useGoalForm({ userId, onClose });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

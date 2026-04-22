@@ -1,23 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-import {
-  useAddTransactionMutation,
-  useUpdateTransactionMutation,
-} from "@/features/transactions/api/transactionsApi";
+import { useTransactionForm } from "@/features/transactions/hooks/useTransactionForm";
+import { daySuffix, CUTOFF_DAY_OPTIONS } from "@/features/transactions/services/transactionService";
 import type { Category } from "@/types";
-import { format } from "date-fns";
-
-const transactionSchema = z.object({
-  description: z.string().min(1, "Description is required").max(255),
-  amount: z.number().positive("Amount must be positive"),
-  type: z.enum(["expense", "income"]),
-  category_id: z.string().uuid("Select a category"),
-  transaction_date: z.string(),
-  notes: z.string().max(1000).optional(),
-});
 
 interface TransactionFormProps {
   userId: string;
@@ -40,60 +25,22 @@ export default function TransactionForm({
   onClose,
   initialData,
 }: TransactionFormProps) {
-  const router = useRouter();
-  const isEdit = !!initialData;
-
-  const [addTransaction] = useAddTransactionMutation();
-  const [updateTransaction] = useUpdateTransactionMutation();
-
-  const [description, setDescription] = useState(initialData?.description ?? "");
-  const [amount, setAmount] = useState(initialData?.amount?.toString() ?? "");
-  const [type, setType] = useState<"expense" | "income">(initialData?.type ?? "expense");
-  const [categoryId, setCategoryId] = useState(initialData?.category_id ?? "");
-  const [date, setDate] = useState(
-    initialData?.transaction_date ?? format(new Date(), "yyyy-MM-dd")
-  );
-  const [notes, setNotes] = useState(initialData?.notes ?? "");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const filteredCategories = categories.filter(
-    (c) => c.type === type || c.type === "both"
-  );
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    const result = transactionSchema.safeParse({
-      description,
-      amount: parseFloat(amount),
-      type,
-      category_id: categoryId,
-      transaction_date: date,
-      notes: notes || undefined,
-    });
-
-    if (!result.success) {
-      setError(result.error.issues[0].message);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      if (isEdit && initialData) {
-        await updateTransaction({ id: initialData.id, ...result.data }).unwrap();
-      } else {
-        await addTransaction({ ...result.data, user_id: userId }).unwrap();
-      }
-      router.refresh();
-      onClose?.();
-    } catch (err) {
-      setError((err as { error: string }).error ?? "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    description, setDescription,
+    amount, setAmount,
+    type,
+    date, setDate,
+    notes, setNotes,
+    categoryId, setCategoryId,
+    isRecurring, setIsRecurring,
+    cutoffDay, setCutoffDay,
+    filteredCategories,
+    isEdit,
+    error,
+    loading,
+    handleTypeChange,
+    handleSubmit,
+  } = useTransactionForm({ userId, categories, onClose, initialData });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -103,7 +50,7 @@ export default function TransactionForm({
           <button
             key={t}
             type="button"
-            onClick={() => { setType(t); setCategoryId(""); }}
+            onClick={() => handleTypeChange(t)}
             className={`flex-1 py-2 text-sm font-medium capitalize transition-colors ${
               type === t
                 ? t === "expense"
@@ -192,6 +139,52 @@ export default function TransactionForm({
           placeholder="Any additional notes…"
         />
       </div>
+
+      {/* Recurring income — only shown on income tab for new transactions */}
+      {type === "income" && !isEdit && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/40">
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300 accent-emerald-600"
+            />
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+              This is recurring income (e.g. salary cutoff)
+            </span>
+          </label>
+
+          {isRecurring && (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
+                Paid every month on…
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {CUTOFF_DAY_OPTIONS.map((day) => (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => setCutoffDay(day)}
+                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                      cutoffDay === day
+                        ? "bg-emerald-600 text-white"
+                        : "bg-white text-zinc-600 border border-zinc-300 hover:border-emerald-400 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-600"
+                    }`}
+                  >
+                    {day === "end" ? "Last day" : `${day}${daySuffix(day as number)}`}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                {cutoffDay === "end"
+                  ? "Income will recur on the last day of every month."
+                  : `Income will recur on the ${cutoffDay}${daySuffix(cutoffDay as number)} of every month.`}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {error && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">

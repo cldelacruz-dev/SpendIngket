@@ -1,19 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { useAddContributionMutation } from "@/features/goals/api/goalsApi";
+import { useContributionForm } from "@/features/goals/hooks/useContributionForm";
+import { computeGoalProgress } from "@/features/goals/services/goalService";
 import type { SavingsGoal, GoalContribution } from "@/types";
 import { formatCurrency, formatDate, formatPercent, getProgressBarColor, cn } from "@/lib/utils";
 import { ArrowLeft, Plus } from "lucide-react";
 import Link from "next/link";
-import { format } from "date-fns";
-
-const contributionSchema = z.object({
-  amount: z.number().positive("Amount must be positive"),
-  notes: z.string().max(1000).optional(),
-});
 
 interface GoalDetailProps {
   goal: SavingsGoal;
@@ -28,50 +21,26 @@ export default function GoalDetail({
   currentAmount,
   userId,
 }: GoalDetailProps) {
-  const router = useRouter();
-  const [addContribution] = useAddContributionMutation();
   const [showContribution, setShowContribution] = useState(false);
-  const [amount, setAmount] = useState("");
-  const [notes, setNotes] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const pct = Number(goal.target_amount) > 0
-    ? (currentAmount / Number(goal.target_amount)) * 100
-    : 0;
+  const pct = computeGoalProgress(currentAmount, Number(goal.target_amount));
 
-  async function handleContribute(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
+  const {
+    amount, setAmount,
+    notes, setNotes,
+    error,
+    loading,
+    handleSubmit: handleContribute,
+    reset,
+  } = useContributionForm({
+    goalId: goal.id,
+    userId,
+    onSuccess: () => setShowContribution(false),
+  });
 
-    const result = contributionSchema.safeParse({
-      amount: parseFloat(amount),
-      notes: notes || undefined,
-    });
-
-    if (!result.success) {
-      setError(result.error.issues[0].message);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await addContribution({
-        goal_id: goal.id,
-        user_id: userId,
-        amount: result.data.amount,
-        notes: result.data.notes ?? null,
-        contribution_date: format(new Date(), "yyyy-MM-dd"),
-      }).unwrap();
-      setAmount("");
-      setNotes("");
-      setShowContribution(false);
-      router.refresh();
-    } catch (err) {
-      setError((err as { error: string }).error ?? "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+  function handleClose() {
+    reset();
+    setShowContribution(false);
   }
 
   return (
@@ -167,7 +136,7 @@ export default function GoalDetail({
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowContribution(false)}
+                    onClick={handleClose}
                     className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300"
                   >
                     Cancel

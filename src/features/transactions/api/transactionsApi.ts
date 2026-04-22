@@ -4,6 +4,7 @@ import type { Database } from "@/types/database.types";
 
 type TransactionInsert = Database["public"]["Tables"]["transactions"]["Insert"];
 type TransactionUpdate = { id: string } & Database["public"]["Tables"]["transactions"]["Update"];
+type RecurringTransactionInsert = Database["public"]["Tables"]["recurring_transactions"]["Insert"];
 
 export const transactionsApi = createApi({
   reducerPath: "transactionsApi",
@@ -42,6 +43,19 @@ export const transactionsApi = createApi({
         return { data: undefined };
       },
     }),
+
+    addRecurringTransaction: builder.mutation<{ id: string }, RecurringTransactionInsert>({
+      queryFn: async (data) => {
+        const supabase = createClient();
+        const { data: row, error } = await supabase
+          .from("recurring_transactions")
+          .insert(data)
+          .select("id")
+          .single();
+        if (error) return { error: { status: "CUSTOM_ERROR", error: error.message } };
+        return { data: row };
+      },
+    }),
   }),
 });
 
@@ -49,4 +63,5 @@ export const {
   useAddTransactionMutation,
   useUpdateTransactionMutation,
   useDeleteTransactionMutation,
+  useAddRecurringTransactionMutation,
 } = transactionsApi;

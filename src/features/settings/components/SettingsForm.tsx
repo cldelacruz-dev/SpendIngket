@@ -1,18 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useUpdateProfileMutation } from "@/features/settings/api/settingsApi";
+import { useSettingsForm } from "@/features/settings/hooks/useSettingsForm";
 import type { UserProfile } from "@/types";
-import { z } from "zod";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useUIStore, type Theme } from "@/stores/useUIStore";
 import { cn } from "@/lib/utils";
-
-const profileSchema = z.object({
-  display_name: z.string().min(2, "Name must be at least 2 characters").max(100),
-  timezone: z.string().min(1),
-});
 
 interface SettingsFormProps {
   profile: UserProfile | null;
@@ -21,37 +13,15 @@ interface SettingsFormProps {
 }
 
 export default function SettingsForm({ profile, userId, email }: SettingsFormProps) {
-  const router = useRouter();
-  const [updateProfile] = useUpdateProfileMutation();
-  const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
-  const [timezone, setTimezone] = useState(profile?.timezone ?? "Asia/Manila");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { theme, setTheme } = useUIStore();
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setSuccess(false);
-
-    const result = profileSchema.safeParse({ display_name: displayName, timezone });
-    if (!result.success) {
-      setError(result.error.issues[0].message);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await updateProfile({ userId, ...result.data }).unwrap();
-      setSuccess(true);
-      router.refresh();
-    } catch (err) {
-      setError((err as { error: string }).error ?? "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    displayName, setDisplayName,
+    timezone, setTimezone,
+    error,
+    success,
+    loading,
+    handleSubmit,
+  } = useSettingsForm({ profile, userId });
 
   return (
     <div className="space-y-6">

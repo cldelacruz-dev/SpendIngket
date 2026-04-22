@@ -1,22 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { useAddBudgetMutation } from "@/features/budgets/api/budgetsApi";
+import { useBudgetForm } from "@/features/budgets/hooks/useBudgetForm";
 import type { Category } from "@/types";
-import { format } from "date-fns";
-
-const budgetSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  period_type: z.enum(["weekly", "monthly", "yearly"]),
-  start_date: z.string(),
-});
-
-interface AllocationRow {
-  category_id: string;
-  amount_limit: string;
-}
 
 interface BudgetFormProps {
   userId: string;
@@ -25,74 +10,18 @@ interface BudgetFormProps {
 }
 
 export default function BudgetForm({ userId, categories, onClose }: BudgetFormProps) {
-  const router = useRouter();
-  const [addBudget] = useAddBudgetMutation();
-  const [name, setName] = useState("");
-  const [periodType, setPeriodType] = useState<"weekly" | "monthly" | "yearly">("monthly");
-  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [allocations, setAllocations] = useState<AllocationRow[]>([
-    { category_id: "", amount_limit: "" },
-  ]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  function addAllocation() {
-    setAllocations((prev) => [...prev, { category_id: "", amount_limit: "" }]);
-  }
-
-  function removeAllocation(index: number) {
-    setAllocations((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updateAllocation(index: number, field: keyof AllocationRow, value: string) {
-    setAllocations((prev) =>
-      prev.map((row, i) => (i === index ? { ...row, [field]: value } : row))
-    );
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    const parsed = budgetSchema.safeParse({ name, period_type: periodType, start_date: startDate });
-    if (!parsed.success) {
-      setError(parsed.error.issues[0].message);
-      return;
-    }
-
-    const validAllocations = allocations.filter(
-      (a) => a.category_id && parseFloat(a.amount_limit) > 0
-    );
-
-    if (validAllocations.length === 0) {
-      setError("Add at least one category allocation.");
-      return;
-    }
-
-    // Check duplicate categories
-    const ids = validAllocations.map((a) => a.category_id);
-    if (new Set(ids).size !== ids.length) {
-      setError("Each category can only appear once.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await addBudget({
-        budget: { ...parsed.data, user_id: userId },
-        allocations: validAllocations.map((a) => ({
-          category_id: a.category_id,
-          amount_limit: parseFloat(a.amount_limit),
-        })),
-      }).unwrap();
-      router.refresh();
-      onClose?.();
-    } catch (err) {
-      setError((err as { error: string }).error ?? "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const {
+    name, setName,
+    periodType, setPeriodType,
+    startDate, setStartDate,
+    allocations,
+    addAllocation,
+    removeAllocation,
+    updateAllocation,
+    error,
+    loading,
+    handleSubmit,
+  } = useBudgetForm({ userId, categories, onClose });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

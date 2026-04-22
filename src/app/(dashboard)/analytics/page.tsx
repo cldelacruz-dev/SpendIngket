@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { computeTrendPoint, computeAnalyticsSummary } from "@/features/analytics/services/analyticsService";
 import SpendingByCategoryChart from "@/features/analytics/components/SpendingByCategoryChart";
 import MonthlyTrendChart from "@/features/analytics/components/MonthlyTrendChart";
 import InsightCard from "@/features/analytics/components/InsightCard";
@@ -60,18 +61,15 @@ export default async function AnalyticsPage({
 
   const spendingByCategory = spendingByCategoryResult.data ?? [];
 
-  const trendData = trendMonths.map(({ label }, i) => {
-    const rows = trendResults[i].data ?? [];
-    const income = rows.filter((r) => r.type === "income").reduce((s, r) => s + Number(r.amount), 0);
-    const expense = rows.filter((r) => r.type === "expense").reduce((s, r) => s + Number(r.amount), 0);
-    return { label, income, expense };
-  });
+  const trendData = trendMonths.map(({ label }, i) =>
+    computeTrendPoint(label, trendResults[i].data ?? [])
+  );
 
   const summaryRows = summaryResult.data ?? [];
-  const totalIncome = summaryRows.filter((r) => r.type === "income").reduce((s, r) => s + Number(r.amount), 0);
-  const totalExpense = summaryRows.filter((r) => r.type === "expense").reduce((s, r) => s + Number(r.amount), 0);
-  const savingRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
-  const topCategory = spendingByCategory[0] ?? null;
+  const { totalIncome, totalExpense, savingRate, topCategory } = computeAnalyticsSummary(
+    summaryRows,
+    spendingByCategory
+  );
 
   return (
     <div className="space-y-6">

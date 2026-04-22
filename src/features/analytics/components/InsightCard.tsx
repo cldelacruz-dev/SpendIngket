@@ -1,4 +1,5 @@
 import { formatCurrency, formatPercent } from "@/lib/utils";
+import { buildNarrative } from "@/features/analytics/services/analyticsService";
 import type { SpendingByCategory } from "@/types";
 
 interface InsightCardProps {
@@ -55,34 +56,4 @@ export default function InsightCard({
       </div>
     </div>
   );
-}
-
-function buildNarrative({
-  totalIncome,
-  totalExpense,
-  savingRate,
-  topCategory,
-  month,
-}: Omit<InsightCardProps, "children">) {
-  if (totalExpense === 0 && totalIncome === 0) {
-    return `No transactions recorded for ${month}. Start logging your income and expenses to see insights here.`;
-  }
-
-  const parts: string[] = [];
-
-  if (totalExpense > 0) {
-    parts.push(`You spent ${formatCurrency(totalExpense)} in ${month}.`);
-  }
-  if (topCategory) {
-    parts.push(
-      `Your biggest expense category was ${topCategory.category_name} at ${formatPercent(topCategory.percentage)} of total spending.`
-    );
-  }
-  if (savingRate > 0) {
-    parts.push(`You saved ${formatPercent(savingRate)} of your income — keep it up.`);
-  } else if (savingRate < 0) {
-    parts.push(`Your expenses exceeded your income this month. Reviewing your top categories may help.`);
-  }
-
-  return parts.join(" ");
 }
