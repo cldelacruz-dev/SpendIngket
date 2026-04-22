@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useUpdateProfileMutation } from "@/features/settings/api/settingsApi";
 import type { UserProfile } from "@/types";
 import { z } from "zod";
+import { Sun, Moon, Monitor } from "lucide-react";
+import { useUIStore, type Theme } from "@/stores/useUIStore";
+import { cn } from "@/lib/utils";
 
 const profileSchema = z.object({
   display_name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -25,6 +28,7 @@ export default function SettingsForm({ profile, userId, email }: SettingsFormPro
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { theme, setTheme } = useUIStore();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -118,6 +122,34 @@ export default function SettingsForm({ profile, userId, email }: SettingsFormPro
             {loading ? "Saving…" : "Save changes"}
           </button>
         </form>
+      </div>
+
+      {/* Appearance */}
+      <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-zinc-50">Appearance</h2>
+        <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">Choose how SpendIngket looks for you.</p>
+        <div className="flex gap-3">
+          {([
+            { value: "light", label: "Light", icon: Sun },
+            { value: "dark",  label: "Dark",  icon: Moon },
+            { value: "system", label: "System", icon: Monitor },
+          ] as { value: Theme; label: string; icon: React.ElementType }[]).map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setTheme(value)}
+              className={cn(
+                "flex flex-1 flex-col items-center gap-2 rounded-xl border-2 py-4 text-sm font-medium transition-colors",
+                theme === value
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+                  : "border-zinc-200 text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-zinc-600"
+              )}
+            >
+              <Icon className="h-5 w-5" />
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

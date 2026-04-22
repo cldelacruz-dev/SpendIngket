@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Use class-based dark mode so JS can toggle it */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* SpendIngket Brand Tokens */
   --brand-primary: #3B76F6;      /* Trust Blue */
