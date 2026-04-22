@@ -142,7 +142,7 @@ export default function GoalDetail({
                 <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                   Add Contribution
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <input
                     type="number"
                     value={amount}

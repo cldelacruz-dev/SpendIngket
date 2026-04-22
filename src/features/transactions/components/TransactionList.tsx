@@ -75,7 +75,7 @@ export default function TransactionList({
         return (
           <div key={t.id} className="group relative">
             <TransactionCard transaction={t} />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden items-center gap-1 group-hover:flex">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
               <button
                 onClick={() => setEditingId(t.id)}
                 className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800"

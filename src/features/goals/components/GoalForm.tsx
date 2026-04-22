@@ -80,7 +80,7 @@ export default function GoalForm({ userId, onClose }: GoalFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
             Target amount (₱)

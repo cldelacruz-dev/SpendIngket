@@ -29,7 +29,7 @@ export default function MonthlyTrendChart({ data }: MonthlyTrendChartProps) {
         Income vs Expenses (6 months)
       </h2>
       <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+        <BarChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" />
           <XAxis dataKey="label" tick={{ fontSize: 12 }} />
           <YAxis

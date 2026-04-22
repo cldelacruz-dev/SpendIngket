@@ -33,7 +33,7 @@ export default function InsightCard({
       </p>
       <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">{narrative}</p>
 
-      <div className="mt-4 grid grid-cols-3 gap-4 border-t border-emerald-100 pt-4 dark:border-emerald-900">
+      <div className="mt-4 grid grid-cols-1 gap-4 border-t border-emerald-100 pt-4 dark:border-emerald-900 sm:grid-cols-3">
         <div>
           <p className="text-xs text-zinc-500">Income</p>
           <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">

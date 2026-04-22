@@ -25,7 +25,7 @@ export default function AddTransactionButton({ categories, userId }: AddTransact
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
+          <div className="w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900" style={{maxHeight: '90dvh'}}>
             <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
               New Transaction
             </h2>

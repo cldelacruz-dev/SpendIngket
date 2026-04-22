@@ -21,7 +21,7 @@ export default async function GoalsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-y-2">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
             Savings Goals

@@ -29,7 +29,7 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        "flex h-full flex-col border-r border-zinc-200 bg-white transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900",
+        "hidden lg:flex h-full flex-col border-r border-zinc-200 bg-white transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900",
         sidebarOpen ? "w-60" : "w-16"
       )}
     >
