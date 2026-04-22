@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { startOfMonth, endOfMonth, format } from "date-fns";
@@ -7,6 +8,7 @@ import RecentTransactions from "@/features/transactions/components/RecentTransac
 import BudgetOverview from "@/features/budgets/components/BudgetOverview";
 import GoalsSummary from "@/features/goals/components/GoalsSummary";
 import DashboardGreeting from "@/features/dashboard/components/DashboardGreeting";
+import DrYoshiGreeting from "@/features/dashboard/components/DrYoshiGreeting";
 import { buildDrYoshiMessage } from "@/features/dashboard/services/dashboardService";
 import WalletOverview from "@/features/wallets/components/WalletOverview";
 import LoansSummary from "@/features/loans/components/LoansSummary";
@@ -80,11 +82,46 @@ export default async function DashboardPage() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const displayName = profile?.display_name ?? "there";
-  const message = buildDrYoshiMessage(displayName, totalIncome, totalExpense);
+  const staticMessage = buildDrYoshiMessage(displayName, totalIncome, totalExpense);
+
+  const savingRate =
+    totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
+
+  // Find top expense category from this month's transactions
+  const categoryTotals: Record<string, { name: string; total: number }> = {};
+  for (const t of allTransactions) {
+    if (t.type === "expense" && t.categories) {
+      const cat = t.categories as { id: string; name: string };
+      if (!categoryTotals[cat.id]) {
+        categoryTotals[cat.id] = { name: cat.name, total: 0 };
+      }
+      categoryTotals[cat.id].total += Number(t.amount);
+    }
+  }
+  const topCategory =
+    Object.values(categoryTotals).sort((a, b) => b.total - a.total)[0]?.name ??
+    null;
+
+  const drYoshiCtx = {
+    displayName,
+    totalIncome,
+    totalExpense,
+    savingRate,
+    topCategory,
+    activeLoansCount: activeLoans?.length ?? 0,
+    activeGoalsCount: goals?.length ?? 0,
+    month: format(now, "MMMM"),
+  };
 
   return (
     <div className="space-y-6">
-      <DashboardGreeting displayName={displayName} message={message} />
+      <Suspense
+        fallback={
+          <DashboardGreeting displayName={displayName} message={staticMessage} />
+        }
+      >
+        <DrYoshiGreeting {...drYoshiCtx} />
+      </Suspense>
 
       <WalletOverview wallets={wallets ?? []} />
 
